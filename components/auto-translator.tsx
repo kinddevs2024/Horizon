@@ -84,30 +84,21 @@ function collectTextNodes(root: Element) {
 
 async function translateElement(root: Element, target: string) {
   const textNodes = collectTextNodes(root);
-  if (!textNodes.length) return;
-
-  // unique texts to reduce calls
-  const unique = Array.from(new Set(textNodes.map((n) => n.nodeValue?.trim() || ""))).filter(
-    Boolean,
-  );
-
-  const translations = new Map<string, string>();
-  for (const text of unique) {
-    try {
-      const translated = await translateText(text, target);
-      translations.set(text, translated);
-    } catch {
-      // skip errors silently to avoid blocking others
-    }
-  }
+  const tasks: Promise<void>[] = [];
 
   textNodes.forEach((node) => {
     const original = node.nodeValue?.trim() || "";
     if (!original) return;
-    const translated = translations.get(original);
-    if (translated && translated !== original) {
-      node.nodeValue = node.nodeValue?.replace(original, translated) ?? translated;
-    }
+    const task = translateText(original, target)
+      .then((translated) => {
+        if (translated && translated !== original) {
+          node.nodeValue = node.nodeValue?.replace(original, translated) ?? translated;
+        }
+      })
+      .catch(() => {
+        // skip errors silently to avoid blocking others
+      });
+    tasks.push(task);
   });
 
   // translate specific attributes if opted in
@@ -120,22 +111,28 @@ async function translateElement(root: Element, target: string) {
     for (const attrName of attrs.split(",").map((a) => a.trim()).filter(Boolean)) {
       const value = el.getAttribute(attrName);
       if (!value) continue;
-      try {
-        const translated = await translateText(value, target);
-        if (translated && translated !== value) {
-          el.setAttribute(attrName, translated);
-        }
-      } catch {
-        // ignore individual attribute failures
-      }
+      const task = translateText(value, target)
+        .then((translated) => {
+          if (translated && translated !== value) {
+            el.setAttribute(attrName, translated);
+          }
+        })
+        .catch(() => {
+          // ignore individual attribute failures
+        });
+      tasks.push(task);
     }
+  }
+
+  if (tasks.length) {
+    await Promise.all(tasks);
   }
 }
 
 export function AutoTranslator() {
   const observerRef = useRef<MutationObserver | null>(null);
   const isTranslating = useRef(false);
-  const debounceRef = useRef<number | null>(null);
+  const rafRef = useRef<number | null>(null);
 
   useEffect(() => {
     if (typeof window === "undefined") return;
@@ -168,15 +165,18 @@ export function AutoTranslator() {
       }
     };
 
-    const debouncedRun = () => {
-      if (debounceRef.current) window.clearTimeout(debounceRef.current);
-      debounceRef.current = window.setTimeout(runTranslation, 250);
+    const scheduleRun = () => {
+      if (rafRef.current !== null || isTranslating.current) return;
+      rafRef.current = window.requestAnimationFrame(() => {
+        rafRef.current = null;
+        void runTranslation();
+      });
     };
 
     runTranslation();
 
     observerRef.current = new MutationObserver(() => {
-      debouncedRun();
+      scheduleRun();
     });
     observerRef.current.observe(document.body, {
       childList: true,
@@ -186,7 +186,7 @@ export function AutoTranslator() {
 
     return () => {
       observerRef.current?.disconnect();
-      if (debounceRef.current) window.clearTimeout(debounceRef.current);
+      if (rafRef.current !== null) window.cancelAnimationFrame(rafRef.current);
     };
   }, []);
 
