@@ -1,0 +1,87 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  color-scheme: light;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  @apply bg-canvas text-ink antialiased;
+  font-family: var(--font-plex), system-ui, -apple-system, sans-serif;
+  letter-spacing: 0.01em;
+}
+
+a {
+  @apply text-ink transition-colors duration-150;
+}
+
+a:hover {
+  @apply text-accent;
+}
+
+main {
+  @apply bg-canvas;
+}
+
+section {
+  @apply border-b border-border;
+}
+
+h1,
+h2,
+h3,
+h4 {
+  font-family: var(--font-space), var(--font-plex), system-ui, sans-serif;
+  letter-spacing: var(--heading-spacing, -0.02em);
+}
+
+p {
+  @apply text-lg text-muted leading-relaxed;
+}
+
+.eyebrow {
+  @apply uppercase tracking-[0.18em] text-xs text-subtle font-semibold;
+}
+
+.tag {
+  @apply inline-flex items-center gap-2 rounded-full border border-border px-3 py-1 text-xs font-medium text-subtle;
+}
+
+.divider {
+  @apply h-px w-full bg-border;
+}
+
+.card-plain {
+  @apply border border-border bg-surface px-6 py-5;
+}
+
+.link-underline {
+  @apply relative inline-flex items-center gap-2 font-semibold text-ink;
+}
+
+.link-underline::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  bottom: -2px;
+  height: 1px;
+  width: 100%;
+  background: currentColor;
+  opacity: 0.5;
+  transition: opacity 0.15s ease;
+}
+
+.link-underline:hover::after {
+  opacity: 1;
+}
+
+@layer utilities {
+  .text-balance {
+    text-wrap: balance;
+  }
+}
