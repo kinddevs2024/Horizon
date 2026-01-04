@@ -111,7 +111,9 @@ async function translateElement(root: Element, target: string) {
   });
 
   // translate specific attributes if opted in
-  const attributeElements = root.querySelectorAll<HTMLElement>(`[${ATTR_KEY}]`);
+  const attributeElements = Array.from(
+    root.querySelectorAll<HTMLElement>(`[${ATTR_KEY}]`),
+  );
   for (const el of attributeElements) {
     const attrs = el.getAttribute(ATTR_KEY);
     if (!attrs) continue;
