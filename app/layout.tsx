@@ -23,6 +23,11 @@ export const metadata: Metadata = {
   title: "Horizon - Systems for modern product & service companies",
   description:
     "Horizon builds ServiceOS and MarketOS: calm, engineered operating systems for services and marketplaces.",
+  icons: {
+    icon: "/horizon_icon_cropped.svg",
+    shortcut: "/horizon_icon_cropped.svg",
+    apple: "/horizon_icon_cropped.svg",
+  },
 };
 
 export default function RootLayout({

@@ -19,11 +19,11 @@ const config: Config = {
       colors: {
         canvas: "#f7f7f5",
         surface: "#ffffff",
-        ink: "#0b1224",
-        muted: "#4b5565",
-        subtle: "#6f778a",
-        border: "#e3e6ed",
-        accent: "#0f274f",
+        ink: "#233C5A",
+        muted: "#5A6B7F",
+        subtle: "#8A95A5",
+        border: "#D1D6DD",
+        accent: "#233C5A",
       },
       fontFamily: {
         sans: ["var(--font-plex)", "system-ui", "sans-serif"],

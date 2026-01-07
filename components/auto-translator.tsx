@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useRef } from "react";
+import { LANGUAGE_MAP } from "./languages-map";
 
 const LANGUAGE_KEY = "horizon_translate_language";
 const AUTO_KEY = "horizon_auto_translate";
@@ -12,33 +13,150 @@ const mapGoogleLocaleToLanguage = (locale: string | undefined) => {
   if (!locale) return "en";
   const lower = locale.toLowerCase();
   const base = lower.split("-")[0];
-  const map: Record<string, string> = {
-    en: "en",
-    es: "es",
-    fr: "fr",
-    de: "de",
-    ru: "ru",
-    pt: "pt",
-    it: "it",
-    nl: "nl",
-    pl: "pl",
-    tr: "tr",
-    ja: "ja",
-    ko: "ko",
-    zh: "zh-CN",
-    ar: "ar",
-    he: "he",
-    uk: "uk",
-    cs: "cs",
-    sv: "sv",
-    no: "no",
-    da: "da",
-    fi: "fi",
-    vi: "vi",
-    id: "id",
-    th: "th",
+  
+  // Проверяем полный локаль сначала (например, zh-CN, zh-TW)
+  if (LANGUAGE_MAP[lower]) {
+    return LANGUAGE_MAP[lower];
+  }
+  
+  // Затем проверяем базовый код языка
+  return LANGUAGE_MAP[base] ?? "en";
+};
+
+/**
+ * Определяет язык пользователя с приоритетом:
+ * 1. Настройки браузера (navigator.language, navigator.languages) - приоритет #1
+ * 2. Настройки устройства (navigator.userLanguage и другие) - приоритет #2
+ * 3. Настройки региона (Intl API, timezone) - приоритет #3
+ */
+const detectUserLanguage = (): string => {
+  if (typeof navigator === "undefined") {
+    return "en";
+  }
+
+  // Расширенный тип для поддержки различных свойств браузера
+  const navigatorAny = navigator as Navigator & { 
+    systemLanguage?: string;
+    userLanguage?: string;
+    browserLanguage?: string;
+    languages?: readonly string[];
   };
-  return map[base] ?? "en";
+
+  // 1. ПРИОРИТЕТ #1: Настройки браузера (Google Chrome, Firefox, Safari, Edge и т.д.)
+  // 1.1. Проверяем основной язык браузера (navigator.language)
+  // Это основной язык, установленный в настройках браузера
+  if (navigator.language) {
+    const mapped = mapGoogleLocaleToLanguage(navigator.language);
+    // Возвращаем язык, даже если это английский (пользователь явно выбрал его)
+    // Английский будет обработан позже в AutoTranslator и не будет переводиться
+    if (mapped) return mapped;
+  }
+
+  // 1.2. Проверяем полный список предпочитаемых языков браузера (navigator.languages)
+  // В Google Chrome это настройка: Настройки → Языки → Предпочитаемые языки
+  // Это массив языков в порядке приоритета, установленных пользователем в браузере
+  if (navigator.languages && navigator.languages.length > 0) {
+    for (const lang of navigator.languages) {
+      const mapped = mapGoogleLocaleToLanguage(lang);
+      if (mapped) {
+        // Возвращаем первый поддерживаемый язык из списка предпочтений
+        return mapped;
+      }
+    }
+  }
+
+  // 1.3. Дополнительная проверка: язык системы браузера (для некоторых браузеров)
+  if (navigatorAny.systemLanguage) {
+    const mapped = mapGoogleLocaleToLanguage(navigatorAny.systemLanguage);
+    if (mapped) return mapped;
+  }
+
+  // 1.4. Для браузеров на базе Chromium (Chrome, Edge, Opera)
+  // Проверяем дополнительный способ получения языка
+  if (navigatorAny.languages && Array.isArray(navigatorAny.languages)) {
+    for (const lang of navigatorAny.languages) {
+      const mapped = mapGoogleLocaleToLanguage(lang);
+      if (mapped) return mapped;
+    }
+  }
+
+  // 2. ПРИОРИТЕТ #2: Настройки устройства (для старых браузеров и IE)
+  // userLanguage используется в старых версиях Internet Explorer
+  if (navigatorAny.userLanguage) {
+    const mapped = mapGoogleLocaleToLanguage(navigatorAny.userLanguage);
+    if (mapped) return mapped;
+  }
+  
+  // browserLanguage используется в некоторых старых браузерах
+  if (navigatorAny.browserLanguage) {
+    const mapped = mapGoogleLocaleToLanguage(navigatorAny.browserLanguage);
+    if (mapped) return mapped;
+  }
+
+  // 3. Приоритет: Настройки региона через Intl API
+  try {
+    // Локаль из Intl.DateTimeFormat
+    const dateFormat = new Intl.DateTimeFormat();
+    const dateLocale = dateFormat.resolvedOptions().locale;
+    if (dateLocale) {
+      const mapped = mapGoogleLocaleToLanguage(dateLocale);
+      if (mapped !== "en") return mapped;
+    }
+
+    // Локаль из Intl.NumberFormat
+    const numberFormat = new Intl.NumberFormat();
+    const numberLocale = numberFormat.resolvedOptions().locale;
+    if (numberLocale) {
+      const mapped = mapGoogleLocaleToLanguage(numberLocale);
+      if (mapped !== "en") return mapped;
+    }
+
+    // Попытка определить язык по часовому поясу (косвенный метод)
+    // Некоторые регионы имеют типичные языки
+    const timeZone = Intl.DateTimeFormat().resolvedOptions().timeZone;
+    if (timeZone) {
+      const timezoneToLanguage: Record<string, string> = {
+        "Europe/Moscow": "ru",
+        "Asia/Tokyo": "ja",
+        "Asia/Shanghai": "zh-CN",
+        "Asia/Seoul": "ko",
+        "Asia/Bangkok": "th",
+        "Asia/Jakarta": "id",
+        "Asia/Ho_Chi_Minh": "vi",
+        "Europe/Berlin": "de",
+        "Europe/Paris": "fr",
+        "Europe/Madrid": "es",
+        "Europe/Rome": "it",
+        "Europe/Amsterdam": "nl",
+        "Europe/Warsaw": "pl",
+        "Europe/Prague": "cs",
+        "Europe/Stockholm": "sv",
+        "Europe/Oslo": "no",
+        "Europe/Copenhagen": "da",
+        "Europe/Helsinki": "fi",
+        "America/Sao_Paulo": "pt",
+        "America/Mexico_City": "es",
+        "America/Argentina/Buenos_Aires": "es",
+        "Africa/Cairo": "ar",
+        "Asia/Dubai": "ar",
+        "Asia/Riyadh": "ar",
+        "Asia/Tel_Aviv": "he",
+        "Europe/Kiev": "uk",
+        "Europe/Istanbul": "tr",
+      };
+
+      const langFromTimezone = timezoneToLanguage[timeZone];
+      if (langFromTimezone) {
+        return langFromTimezone;
+      }
+    }
+  } catch (error) {
+    // Игнорируем ошибки Intl API
+    console.debug("Intl API detection failed:", error);
+  }
+
+  // По умолчанию английский
+  return "en";
 };
 
 async function translateText(text: string, target: string) {
@@ -143,9 +261,9 @@ export function AutoTranslator() {
     const targetLanguage = (() => {
       const stored = localStorage.getItem(LANGUAGE_KEY);
       if (stored) return stored;
-      const mapped = mapGoogleLocaleToLanguage(navigator.language);
-      localStorage.setItem(LANGUAGE_KEY, mapped);
-      return mapped;
+      const detected = detectUserLanguage();
+      localStorage.setItem(LANGUAGE_KEY, detected);
+      return detected;
     })();
 
     if (!targetLanguage || targetLanguage === "en") return;
