@@ -46,7 +46,7 @@ const works = [
     },
     {
         id: 6,
-        image: "/our-clients-1.png",
+        image: "/our-clients-6.png",
         title: "Sadia Lux",
         description: "Luxury e-commerce platform with elegant design and premium user experience",
         category: "Luxury",

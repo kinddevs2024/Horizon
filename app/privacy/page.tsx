@@ -17,7 +17,21 @@ export default function PrivacyPage() {
               agreed otherwise.
             </p>
             <p className="text-base text-subtle">
-              For questions, email <a href="mailto:hello@horizon.systems" className="underline underline-offset-4">hello@horizon.systems</a>.
+              For questions, email{" "}
+              <a
+                href="mailto:uploadhorizon@gmail.com"
+                className="text-[#233C5A] underline underline-offset-4 transition-colors hover:text-[#1a2d45]"
+              >
+                uploadhorizon@gmail.com
+              </a>{" "}
+              or call{" "}
+              <a
+                href="tel:+998900268118"
+                className="text-[#233C5A] underline underline-offset-4 transition-colors hover:text-[#1a2d45]"
+              >
+                +998 90 026 81 18
+              </a>
+              .
             </p>
           </FadeIn>
         </div>
