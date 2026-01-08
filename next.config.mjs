@@ -6,13 +6,15 @@ const nextConfig = {
   // Настройки для уменьшения предупреждений о 404
   poweredByHeader: false,
   
-  // Игнорируем запросы к source maps в dev режиме
-  webpack: (config, { dev }) => {
-    if (dev) {
-      config.devtool = 'eval-source-map';
+  // Настройки webpack для обработки source maps
+  webpack: (config, { dev, isServer }) => {
+    if (dev && !isServer) {
+      // В dev режиме используем более легкий вариант source maps
+      config.devtool = 'eval-cheap-module-source-map';
     }
     return config;
   },
+
 };
 
 export default nextConfig;

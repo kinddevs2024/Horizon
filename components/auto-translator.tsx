@@ -159,25 +159,35 @@ const detectUserLanguage = (): string => {
   return "en";
 };
 
-async function translateText(text: string, target: string) {
+async function translateText(text: string, target: string): Promise<string> {
   const cacheKey = `${target}:${text}`;
   if (CACHE.has(cacheKey)) return CACHE.get(cacheKey)!;
 
-  const url = `https://translate.googleapis.com/translate_a/single?client=gtx&sl=auto&tl=${encodeURIComponent(
-    target,
-  )}&dt=t&q=${encodeURIComponent(text)}`;
-  const response = await fetch(url);
-  if (!response.ok) throw new Error(`Translate failed: ${response.status}`);
-  const data = (await response.json()) as unknown;
-  const translated =
-    Array.isArray(data) && Array.isArray(data[0])
-      ? data[0]
-          .map((entry: unknown) => (Array.isArray(entry) ? entry[0] : ""))
-          .join("")
-      : text;
+  try {
+    const url = `https://translate.googleapis.com/translate_a/single?client=gtx&sl=auto&tl=${encodeURIComponent(
+      target,
+    )}&dt=t&q=${encodeURIComponent(text)}`;
+    const response = await fetch(url);
+    if (!response.ok) {
+      console.warn(`Translate failed for "${text}" to ${target}: ${response.status}`);
+      return text;
+    }
+    const data = (await response.json()) as unknown;
+    const translated =
+      Array.isArray(data) && Array.isArray(data[0])
+        ? data[0]
+            .map((entry: unknown) => (Array.isArray(entry) ? entry[0] : ""))
+            .join("")
+            .trim()
+        : text;
 
-  CACHE.set(cacheKey, translated || text);
-  return translated || text;
+    const result = translated || text;
+    CACHE.set(cacheKey, result);
+    return result;
+  } catch (error) {
+    console.warn(`Translation error for "${text}":`, error);
+    return text;
+  }
 }
 
 function collectTextNodes(root: Element) {
@@ -254,6 +264,7 @@ export function AutoTranslator() {
 
   useEffect(() => {
     if (typeof window === "undefined") return;
+    
     const enabledRaw = localStorage.getItem(AUTO_KEY);
     const enabled = enabledRaw === null ? true : enabledRaw === "true";
     if (!enabled) return;
@@ -272,12 +283,26 @@ export function AutoTranslator() {
       if (isTranslating.current) return;
       isTranslating.current = true;
       try {
+        // Ждем полной загрузки DOM
+        await new Promise((resolve) => {
+          if (document.readyState === "complete") {
+            resolve(undefined);
+          } else {
+            window.addEventListener("load", () => resolve(undefined), { once: true });
+          }
+        });
+        
+        // Небольшая задержка для гарантии, что все элементы загружены
+        await new Promise((resolve) => setTimeout(resolve, 100));
+
         for (const selector of TARGET_SELECTORS) {
           const el = document.querySelector(selector);
           if (el) {
             await translateElement(el, targetLanguage);
           }
         }
+      } catch (error) {
+        console.error("Translation error:", error);
       } finally {
         isTranslating.current = false;
       }
@@ -291,7 +316,10 @@ export function AutoTranslator() {
       });
     };
 
-    runTranslation();
+    // Запускаем перевод после небольшой задержки для загрузки DOM
+    const timeoutId = setTimeout(() => {
+      void runTranslation();
+    }, 300);
 
     observerRef.current = new MutationObserver(() => {
       scheduleRun();
@@ -303,6 +331,7 @@ export function AutoTranslator() {
     });
 
     return () => {
+      clearTimeout(timeoutId);
       observerRef.current?.disconnect();
       if (rafRef.current !== null) window.cancelAnimationFrame(rafRef.current);
     };

@@ -3,6 +3,7 @@ import { IBM_Plex_Sans, Space_Grotesk } from "next/font/google";
 import { Footer } from "@/components/layout/footer";
 import { Header } from "@/components/layout/header";
 import { AutoTranslator } from "@/components/auto-translator";
+import { ScrollToTop } from "@/components/scroll-to-top";
 import "./globals.css";
 
 const plex = IBM_Plex_Sans({
@@ -39,6 +40,7 @@ export default function RootLayout({
     <html lang="en">
       <body className={`${plex.variable} ${space.variable}`}>
         <AutoTranslator />
+        <ScrollToTop />
         <Header />
         {children}
         <Footer />
