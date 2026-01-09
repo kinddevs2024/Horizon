@@ -1,4 +1,5 @@
 import { FadeIn } from "@/components/reveal";
+import { Analytics } from "@vercel/analytics/next";
 
 export default function PrivacyPage() {
   return (
@@ -36,6 +37,7 @@ export default function PrivacyPage() {
           </FadeIn>
         </div>
       </section>
+      <Analytics />
     </main>
   );
 }

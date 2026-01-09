@@ -3,6 +3,7 @@ import { FadeIn, Stagger, StaggerItem } from "@/components/reveal";
 import { SectionHeading } from "@/components/section-heading";
 import { insightPosts, products, technologyPillars } from "@/lib/content";
 import Link from "next/link";
+import { Analytics } from "@vercel/analytics/next";
 
 export default function Home() {
   return (
@@ -297,6 +298,7 @@ export default function Home() {
           </div>
         </section>
       </main>
+      <Analytics />
     </div>
   );
 }

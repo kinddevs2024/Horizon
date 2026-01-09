@@ -1,6 +1,7 @@
 import { FadeIn } from "@/components/reveal";
 import { SectionHeading } from "@/components/section-heading";
 import { insightPosts } from "@/lib/content";
+import { Analytics } from "@vercel/analytics/next";
 
 export default function InsightsPage() {
   return (
@@ -26,6 +27,7 @@ export default function InsightsPage() {
           </div>
         </div>
       </section>
+      <Analytics />
     </main>
   );
 }

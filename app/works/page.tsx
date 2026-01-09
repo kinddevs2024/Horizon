@@ -2,6 +2,7 @@ import { FadeIn, Stagger, StaggerItem } from "@/components/reveal";
 import { SectionHeading } from "@/components/section-heading";
 import Image from "next/image";
 import Link from "next/link";
+import { Analytics } from "@vercel/analytics/next";
 
 const works = [
     {
@@ -157,6 +158,7 @@ export default function WorksPage() {
           </div>
         </div>
       </section>
+      <Analytics />
     </main>
   );
 }

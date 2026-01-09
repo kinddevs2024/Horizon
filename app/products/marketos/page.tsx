@@ -1,6 +1,7 @@
 import { FadeIn, Stagger, StaggerItem } from "@/components/reveal";
 import { SectionHeading } from "@/components/section-heading";
 import Link from "next/link";
+import { Analytics } from "@vercel/analytics/next";
 
 const capabilities = [
   {
@@ -155,6 +156,7 @@ export default function MarketOSPage() {
           </div>
         </div>
       </section>
+      <Analytics />
     </main>
   );
 }

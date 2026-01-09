@@ -1,5 +1,6 @@
 import { ContactForm } from "@/components/contact-form";
 import { FadeIn } from "@/components/reveal";
+import { Analytics } from "@vercel/analytics/next";
 
 export default function ContactPage() {
   return (
@@ -129,6 +130,7 @@ export default function ContactPage() {
           </div>
         </div>
       </section>
+      <Analytics />
     </main>
   );
 }
