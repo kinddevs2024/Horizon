@@ -3,9 +3,27 @@ import { z } from "zod";
 
 export const dynamic = 'force-dynamic';
 
+// Helper function to validate email or phone
+const emailOrPhone = z.string().refine(
+  (value) => {
+    // Check if it's a valid email
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (emailRegex.test(value)) return true;
+    
+    // Check if it's a valid phone (contains digits, +, spaces, dashes, parentheses)
+    const phoneRegex = /^[\d\s\+\-\(\)]{7,20}$/;
+    if (phoneRegex.test(value)) return true;
+    
+    return false;
+  },
+  {
+    message: "Please enter a valid email address or phone number",
+  }
+);
+
 const submissionSchema = z.object({
   name: z.string().min(2, "Name is required"),
-  email: z.string().email("Valid email is required"),
+  email: emailOrPhone,
   company: z.string().min(2, "Company is required"),
   interest: z.string().min(2, "Select what you need"),
   message: z.string().min(10, "Add a short message"),
@@ -51,7 +69,7 @@ export async function POST(request: Request) {
   const composed = [
     "New Horizon inquiry",
     `Name: ${name}`,
-    `Email: ${email}`,
+    `Email/Phone: ${email}`,
     `Company: ${company}`,
     `Interest: ${interest}`,
     "Message:",

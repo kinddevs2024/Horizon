@@ -101,11 +101,11 @@ export function ContactForm() {
           />
           <Field
             label="Work email / tel"
-            type="email"
+            type="text"
             value={values.email}
             onChange={(v) => update("email", v)}
             error={errors.email}
-            autoComplete="email"
+            autoComplete="tel email"
             required
           />
         </div>
