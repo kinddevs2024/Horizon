@@ -54,3 +54,6 @@ Both variables are required for `/api/telegram`. The handler validates payloads 
 ## Notes
 - No external assets are used; placeholders only.
 - Design is desktop-first with responsive adjustments.
+
+
+API KEY for chatgpt : "vck_5DoIu4zetpTUTYJFS7ZRYsrScJy3IL4SXay1yFaA1H0f4nYH451RLunr"
