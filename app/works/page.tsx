@@ -53,6 +53,14 @@ const works = [
         category: "Luxury",
         url: "https://sadia-lux.vercel.app/",
     },
+    {
+        id: 7,
+        image: "/our-clients-7.png",
+        title: "Xatna Markazi",
+        description: "Medical center",
+        category: "Medicinal",
+        url: "https://xatna-front.vercel.app/",
+    },
 ];
 
 export default function WorksPage() {
